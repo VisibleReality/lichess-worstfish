@@ -10,3 +10,4 @@ lichess_bot_auto_logs/*
 *.txt
 TEMP/*
 /.idea
+/venv
