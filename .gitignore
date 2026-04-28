@@ -140,3 +140,5 @@ cython_debug/
 stockfish
 
 token.txt
+
+/.idea
