@@ -121,6 +121,7 @@ class WorstFish(ExampleEngine):
         # Use fairy-stockfish for from position games due to their potentially invalid positions
         if isinstance(game, model.Game) and game.variant_name == "From Position":
             self.stockfish = chess.engine.SimpleEngine.popen_uci(fairy_stockfish_path, preexec_fn=set_low_priority)
+            self.stockfish.configure({"EvalFile": "nn-chess.nnue"})
         else:
             self.stockfish = chess.engine.SimpleEngine.popen_uci(stockfish_path, preexec_fn=set_low_priority)
         super().__init__(commands, options, stderr, draw_or_resign, game, debug, **popen_args)
