@@ -5,6 +5,7 @@ With these classes, bot makers will not have to implement the UCI or XBoard inte
 """
 import logging
 import numbers
+import os
 import random
 import sys
 from typing import Optional
@@ -12,9 +13,9 @@ from typing import Optional
 import chess
 from chess.engine import PlayResult, Limit
 
+from lib import model
 from lib.engine_wrapper import MinimalEngine
 from lib.lichess_types import MOVE, HOMEMADE_ARGS_TYPE
-from lib import model
 
 # Use this logger variable to print messages to the console or log files.
 # logger.info("message") will always print "message" to the console or log file.
@@ -108,6 +109,10 @@ class ComboEngine(ExampleEngine):
         return PlayResult(move, None, draw_offered=draw_offered)
 
 
+def set_low_priority():
+    os.nice(1)
+
+
 class WorstFish(ExampleEngine):
 
     def __init__(self, commands, options, stderr,  # noqa: ARG002
@@ -115,9 +120,9 @@ class WorstFish(ExampleEngine):
                  **popen_args: str) -> None:
         # Use fairy-stockfish for from position games due to their potentially invalid positions
         if isinstance(game, model.Game) and game.variant_name == "From Position":
-            self.stockfish = chess.engine.SimpleEngine.popen_uci(fairy_stockfish_path)
+            self.stockfish = chess.engine.SimpleEngine.popen_uci(fairy_stockfish_path, preexec_fn=set_low_priority)
         else:
-            self.stockfish = chess.engine.SimpleEngine.popen_uci(stockfish_path)
+            self.stockfish = chess.engine.SimpleEngine.popen_uci(stockfish_path, preexec_fn=set_low_priority)
         super().__init__(commands, options, stderr, draw_or_resign, game, debug, **popen_args)
 
     def evaluate(self, board: chess.Board, time_limit: float = 0.1) -> chess.engine.Score:
@@ -126,7 +131,7 @@ class WorstFish(ExampleEngine):
 
         result = self.stockfish.analyse(board, chess.engine.Limit(time=time_limit))
         return result["score"].relative
-    
+
     def search(self,
                board: chess.Board,
                time_limit: Limit,
